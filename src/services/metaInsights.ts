@@ -5,12 +5,13 @@ import { InsightsFilters, InsightMetrics, BreakdownRow, TimeSeriesData } from "@
  * 
  * Real API call reference:
  * GET https://graph.facebook.com/v19.0/act_{AD_ACCOUNT_ID}/insights
- *   ?fields=impressions,reach,clicks,ctr,cpc,spend,ad_id,adset_id,campaign_id
+ *   ?fields=impressions,reach,clicks,ctr,cpc,spend,conversions,cost_per_conversion,ad_id,adset_id,campaign_id
  *   &level=adset
  *   &time_range[since]={YYYY-MM-DD}&time_range[until]={YYYY-MM-DD}
  *   &time_increment=1
  *   &breakdowns=age,gender,publisher_platform
- *   &filtering=[{"field":"publisher_platform","operator":"IN","value":["instagram"]}]
+ *   &filtering=[{"field":"publisher_platform","operator":"IN","value":["instagram","facebook"]}]
+ *   &filtering=[{"field":"objective","operator":"IN","value":["OUTCOME_TRAFFIC","OUTCOME_LEADS",...]}]
  */
 
 export const fetchInsights = async (filters: InsightsFilters) => {
@@ -34,6 +35,10 @@ export const fetchInsights = async (filters: InsightsFilters) => {
     });
   }
 
+  // Generate conversions based on campaign objective
+  const totalConversions = timeSeries.reduce((sum, d) => sum + d.conversations, 0);
+  const additionalConversions = Math.floor(totalConversions * (filters.campaignObjective === "messages" ? 1 : 0.6));
+
   const kpis: InsightMetrics = {
     impressions: timeSeries.reduce((sum, d) => sum + d.impressions, 0),
     reach: Math.floor(timeSeries.reduce((sum, d) => sum + d.impressions, 0) * 0.75),
@@ -41,10 +46,15 @@ export const fetchInsights = async (filters: InsightsFilters) => {
     ctr: 0,
     cpc: 0,
     spend: 0,
+    conversions: totalConversions + additionalConversions,
+    costPerConversion: 0,
+    conversionRate: 0,
   };
   kpis.ctr = (kpis.clicks / kpis.impressions) * 100;
   kpis.cpc = Math.random() * 1 + 0.5;
   kpis.spend = kpis.clicks * kpis.cpc;
+  kpis.costPerConversion = kpis.conversions > 0 ? kpis.spend / kpis.conversions : 0;
+  kpis.conversionRate = (kpis.conversions / kpis.clicks) * 100;
 
   const ageGroups = ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"];
   const genders = ["male", "female"];

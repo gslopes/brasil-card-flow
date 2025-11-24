@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Eye, Users, MousePointerClick, TrendingUp, DollarSign, Target, AlertCircle } from "lucide-react";
+import { Eye, Users, MousePointerClick, TrendingUp, DollarSign, Target, AlertCircle, MessageCircle } from "lucide-react";
 import { KPICard } from "@/components/KPICard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,18 +58,33 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 p-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Dashboard de Campanhas</h1>
           <p className="text-muted-foreground">
-            {filters.accountId} • Últimos 30 dias • Instagram Ads
+            {filters.accountId} • Últimos 30 dias • {filters.campaignObjective === "all" ? "Todas as campanhas" : "Campanhas filtradas"}
           </p>
         </div>
-        {lastUpdated && (
-          <Badge variant="outline" className="text-sm">
-            Dados atualizados há {minutesAgo} min (simulado)
-          </Badge>
-        )}
+        <div className="flex items-center gap-3">
+          <Select value={filters.campaignObjective} onValueChange={(value: any) => setFilters({ campaignObjective: value })}>
+            <SelectTrigger className="w-[220px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as Campanhas</SelectItem>
+              <SelectItem value="messages">Click-to-WhatsApp</SelectItem>
+              <SelectItem value="conversions">Conversões</SelectItem>
+              <SelectItem value="traffic">Tráfego</SelectItem>
+              <SelectItem value="awareness">Reconhecimento</SelectItem>
+              <SelectItem value="app_installs">Instalações de App</SelectItem>
+            </SelectContent>
+          </Select>
+          {lastUpdated && (
+            <Badge variant="outline" className="text-sm">
+              Dados atualizados há {minutesAgo} min (simulado)
+            </Badge>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
@@ -111,6 +126,27 @@ export default function Dashboard() {
         />
       </div>
 
+      <div className="grid gap-4 md:grid-cols-3">
+        <KPICard
+          title="Conversões"
+          value={kpis.conversions?.toLocaleString("pt-BR") || "0"}
+          icon={MessageCircle}
+          iconColor="text-accent"
+        />
+        <KPICard
+          title="Taxa de Conversão"
+          value={`${kpis.conversionRate?.toFixed(2) || "0.00"}%`}
+          icon={TrendingUp}
+          iconColor="text-accent"
+        />
+        <KPICard
+          title="Custo por Conversão"
+          value={`R$ ${kpis.costPerConversion?.toFixed(2) || "0.00"}`}
+          icon={DollarSign}
+          iconColor="text-muted-foreground"
+        />
+      </div>
+
       <Card className="border-accent/20 bg-gradient-to-br from-accent/5 to-primary/5">
         <CardHeader>
           <div className="flex justify-between items-start">
@@ -131,7 +167,9 @@ export default function Dashboard() {
       <Card>
         <CardHeader>
           <CardTitle>Desempenho Diário</CardTitle>
-          <CardDescription>Impressões, Cliques e Conversas WhatsApp</CardDescription>
+          <CardDescription>
+            Impressões, Cliques e {filters.campaignObjective === "messages" ? "Conversas WhatsApp" : "Conversões"}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -149,7 +187,7 @@ export default function Dashboard() {
               <Legend />
               <Line type="monotone" dataKey="impressions" stroke="hsl(214 95% 50%)" name="Impressões" />
               <Line type="monotone" dataKey="clicks" stroke="hsl(151 65% 48%)" name="Cliques" />
-              <Bar dataKey="conversations" fill="hsl(45 93% 47%)" name="Conversas" />
+              <Bar dataKey="conversations" fill="hsl(45 93% 47%)" name={filters.campaignObjective === "messages" ? "Conversas" : "Conversões"} />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
@@ -160,7 +198,9 @@ export default function Dashboard() {
           <div className="flex justify-between items-center">
             <div>
               <CardTitle>Breakdown por Público</CardTitle>
-              <CardDescription>Idade, Gênero e Placement • Instagram</CardDescription>
+              <CardDescription>
+                Idade, Gênero e Placement • {filters.campaignObjective === "all" ? "Todas as Plataformas" : "Filtrado"}
+              </CardDescription>
             </div>
             <Select value={audienceFilter} onValueChange={setAudienceFilter}>
               <SelectTrigger className="w-[180px]">
