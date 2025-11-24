@@ -26,6 +26,7 @@ export const useInsightsStore = create<InsightsState>((set, get) => ({
     until: new Date().toISOString().split("T")[0],
     level: "adset",
     breakdowns: ["age", "gender", "publisher_platform"],
+    campaignObjective: "all",
   },
   kpis: {
     impressions: 0,
@@ -34,6 +35,9 @@ export const useInsightsStore = create<InsightsState>((set, get) => ({
     ctr: 0,
     cpc: 0,
     spend: 0,
+    conversions: 0,
+    costPerConversion: 0,
+    conversionRate: 0,
   },
   series: [],
   breakdownRows: [],

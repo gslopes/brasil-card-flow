@@ -27,6 +27,9 @@ export interface InsightMetrics {
   ctr: number;
   cpc: number;
   spend: number;
+  conversions?: number;
+  costPerConversion?: number;
+  conversionRate?: number;
 }
 
 export interface BreakdownRow extends InsightMetrics {
@@ -48,6 +51,7 @@ export interface InsightsFilters {
   until: string;
   level: "campaign" | "adset" | "ad";
   breakdowns: string[];
+  campaignObjective?: "all" | "conversions" | "messages" | "traffic" | "awareness" | "app_installs";
 }
 
 export interface AudienceProposal {
